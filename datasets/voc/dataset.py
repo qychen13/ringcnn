@@ -1,13 +1,13 @@
 # copy and modified from https://github.com/wkentaro/pytorch-fcn/blob/master/torchfcn/datasets/voc.py
 
-import collections
 import os.path as osp
 import os
 
 import numpy as np
 import PIL.Image
-from torch.utils import data
+import scipy.io
 
+from torch.utils import data
 import datasets.joint_transforms as jttransforms
 import torchvision.transforms.transforms as tvtransforms
 
@@ -52,7 +52,7 @@ class VOCClassSegBase(data.Dataset):
         self.joint_transforms = joint_transforms
         self.transforms = transforms
         self.target_transforms = target_transforms
-        self.imgs = collections.defaultdict(list)
+        self.imgs = list()
         self._make_dataset(split)
 
     def _make_dataset(self, split):
@@ -78,9 +78,8 @@ class VOCClassSegBase(data.Dataset):
         # load image
         img_file = data_file['img']
         img = PIL.Image.open(img_file)
-        # load label
-        lbl_file = data_file['lbl']
-        lbl = PIL.Image.open(lbl_file)
+
+        lbl = self.loadlbl(data_file['lbl'])
 
         if self.joint_transforms:
             img, lbl = self.joint_transforms(img, lbl)
@@ -93,9 +92,14 @@ class VOCClassSegBase(data.Dataset):
 
         return img, lbl
 
+    def loadlbl(self, lbl_file):
+        # load label
+        return PIL.Image.open(lbl_file)
+
+
 
 class VOC2011ClassSeg(VOCClassSegBase):
-    def __init__(self, root, split='train', transform=False):
+    def __init__(self, root, split='train'):
         super(VOC2011ClassSeg, self).__init__(root, split=split)
         pkg_root = osp.join(osp.dirname(osp.realpath(__file__)), '..')
         imgsets_file = osp.join(
@@ -124,7 +128,7 @@ class SBDClassSeg(VOCClassSegBase):
         super(SBDClassSeg, self).__init__(root, split=split)
 
     def _make_dataset(self, split):
-        dataset_dir = osp.join(self.root, 'benchmark', 'VOC/benchmark_RELEASE/dataset')
+        dataset_dir = osp.join(self.root, 'benchmark_RELEASE', 'dataset')
         if not osp.exists(dataset_dir):
             self.download()
         imgsets_file = osp.join(dataset_dir, '%s.txt' % split)
@@ -132,10 +136,16 @@ class SBDClassSeg(VOCClassSegBase):
             did = did.strip()
             img_file = osp.join(dataset_dir, 'img/%s.jpg' % did)
             lbl_file = osp.join(dataset_dir, 'cls/%s.mat' % did)
-            self.imgs[split].append({
+            self.imgs.append({
                 'img': img_file,
                 'lbl': lbl_file,
             })
+
+    def loadlbl(self, lbl_file):
+        mat = scipy.io.loadmat(lbl_file)
+        lbl = mat['GTcls']['Segmentation'][0][0].astype(np.uint8)
+        lbl = PIL.Image.fromarray(lbl)
+        return lbl
 
     def download(self):
         import urllib3

@@ -19,8 +19,7 @@ class ArgumentsBase(object):
         parser.add_argument('-en', '--environment', type=str, default='main', help='log environment for visdom')
 
         # model info
-        parser.add_argument('-model', '--model-name', type=str,
-                            choices=['resnet50'], required=True,
+        parser.add_argument('-model', '--model-name', type=str, required=True,
                             help='model name')
         parser.add_argument('-nc', '--num_classes', type=int, default=1000, help='number of the classes')
 

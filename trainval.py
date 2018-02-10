@@ -2,9 +2,8 @@ from arguments.arguments_trainval import ArgumentsTrainVal
 from models.construct_model import construct_model
 from utilities.construct_engine import construct_engine
 from datasets.construct_dataset import construct_train_dataloaders
-from utilities.initialization import init_network
+import utilities.loss
 
-import torch.nn as nn
 from torch.optim.sgd import SGD
 import torch
 
@@ -34,12 +33,9 @@ def main():
     print('--------------------------Model Info----------------------------')
     print(model)
 
-    if args.resume_model is None:
-        init_network(model)
-
     # ============================= training setting =================================
 
-    criterion = nn.Sequential(nn.LogSoftmax(dim=1), nn.NLLLoss2d(ignore_index=255))
+    criterion = utilities.loss.SoftMax2D(ignore_index=255)
     optimizer = SGD(model.parameters(), args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
 
     if resume_optimizer is not None:

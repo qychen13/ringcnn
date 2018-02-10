@@ -28,8 +28,7 @@ def load_partial_network(model, state_dict):
     own_state = model.state_dict()
     for name, param in state_dict.items():
         if name not in own_state:
-            raise KeyError('unexpected key "{}" in state_dict'
-                           .format(name))
+            continue
         if isinstance(param, Parameter):
             # backwards compatibility for serialized parameters
             param = param.data
@@ -42,4 +41,6 @@ def load_partial_network(model, state_dict):
             raise
 
     missing = set(own_state.keys()) - set(state_dict.keys())
-    print('******Not load {}******'.format(missing))
+    more = set(state_dict.keys()) - set(own_state.keys())
+    print('******Not init {}******'.format(missing))
+    print('******Not load {}******'.format(more))

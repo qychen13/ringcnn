@@ -26,6 +26,7 @@ class ArgumentsTrainVal(ArgumentsBase):
         parser.add_argument('-wd', '--weight-decay', default=1e-4, type=float, help='weight decay(L1 penalty)')
 
         # model info
+        parser.add_argument('-tl', '--transfer-learning', default=0, type=int)
         parser.add_argument('-rm', '--resume-model', default=None, help='resume model file', metavar='FILE')
         parser.add_argument('-iter', '--resume-iteration', default=0, type=int, help='resume iteration number')
         parser.add_argument('-epo', '--resume-epoch', default=0, type=int, help='resume epoch number')
