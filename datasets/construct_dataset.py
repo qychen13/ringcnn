@@ -3,6 +3,9 @@ from torch.utils.data import DataLoader
 
 from .voc import dataset as vocdataset
 
+datasets = {'SBD': vocdataset.SBDClassSeg,
+            'VOC': vocdataset.VOC2012ClassSeg}
+
 
 def construct_train_dataloaders(args):
     train_sampler = None
@@ -10,9 +13,9 @@ def construct_train_dataloaders(args):
     shuffle = True
 
     # ********************************** Dataset Setup *********************************
-
-    train_folder = vocdataset.SBDClassSeg(args.directory, split='train')
-    val_folder = vocdataset.SBDClassSeg(args.directory, split='val')
+    dataset = datasets[args.dataset]
+    train_folder = dataset(args.directory, split='train')
+    val_folder = dataset(args.directory, split='val')
 
     # ********************************** Wrap Data Loader ********************************
     pin_memory = False

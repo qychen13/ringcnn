@@ -4,6 +4,7 @@ import os
 
 import torch
 import torch.nn
+import torch.nn.functional
 import torchnet.meter as meter
 from torch.autograd import Variable
 from tqdm import tqdm
@@ -16,6 +17,7 @@ def test(model, gpu_ids, iterator, num_classes, logpath):
 
     # multiple gpu support
     if gpu_ids is not None:
+        model.cuda(gpu_ids[0])
         model = torch.nn.DataParallel(model, device_ids=gpu_ids)
 
     # set eval() to freeze running mean and running var
@@ -26,20 +28,20 @@ def test(model, gpu_ids, iterator, num_classes, logpath):
         # wrap data
         for i in range(2):
             if gpu_ids is not None:
-                sample[i].cuda(gpu_ids[0], async=True)
-        sample[i] = Variable(sample[i], volatile=True)
+                sample[i] = sample[i].cuda(gpu_ids[0], async=True)
 
         ipt, target = sample[0], sample[1]
         ipt = Variable(ipt, volatile=True)
         opt = model(ipt)
 
         # compute confusion matrix
+        opt = torch.nn.functional.upsample(opt, target.shape[1:], mode='bilinear')
         opt = opt.data
-        opt = opt.permute(0, 2, 3, 1).view(-1, num_classes)
-        target = target.view_as(opt)
-        index = target != ignore_lbl
-        opt = opt[index]
-        target = target[target]
+        opt = opt.permute(0, 2, 3, 1).contiguous().view(-1, num_classes)
+        target = target.view(-1)
+        index = (target != ignore_lbl)
+        opt = opt[index.unsqueeze(1).expand_as(opt)].view(-1, num_classes)
+        target = target[index]
         confusion_meter.add(opt, target)
 
     confusion_matrix = confusion_meter.value()

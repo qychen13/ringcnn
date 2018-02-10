@@ -2,7 +2,7 @@
 
 import os.path as osp
 import os
-
+import copy
 import numpy as np
 import PIL.Image
 import scipy.io
@@ -10,6 +10,7 @@ import scipy.io
 from torch.utils import data
 import datasets.joint_transforms as jttransforms
 import torchvision.transforms.transforms as tvtransforms
+import torch
 
 
 class VOCClassSegBase(data.Dataset):
@@ -57,6 +58,11 @@ class VOCClassSegBase(data.Dataset):
         self.target_transforms = target_transforms
         self.imgs = list()
         self._make_dataset(split)
+
+        file_dir = os.path.dirname(__file__)
+        reference_img = os.path.join(file_dir, 'sample', '2007_000129.png')
+        palette_im = PIL.Image.open(reference_img)
+        self.palette = palette_im.palette
 
     def _make_dataset(self, split):
         raise NotImplementedError
@@ -108,6 +114,18 @@ class VOCClassSegBase(data.Dataset):
         # load label
         return PIL.Image.open(lbl_file)
 
+    def untransform(self, lbl):
+        # Transfer the VOC color palette to an output mask for visualization.
+        if torch.is_tensor(lbl):
+            lbl = lbl.cpu().numpy()
+
+        if lbl.ndim == 3:
+            lbl = lbl[0]
+        lbl = PIL.Image.fromarray(lbl, mode='P')
+        lbl.palette = copy.copy(self.palette)
+        return lbl
+
+
 
 class VOC2011ClassSeg(VOCClassSegBase):
     def __init__(self, root, split='train'):
@@ -133,7 +151,7 @@ class VOC2012ClassSeg(VOCClassSegBase):
 
     def _make_dataset(self, split):
         # VOC2011 and others are subset of VOC2012
-        dataset_dir = osp.join(self.root, 'VOC/VOCdevkit/VOC2012')
+        dataset_dir = osp.join(self.root, 'VOCdevkit', 'VOC2012')
         if not osp.exists(dataset_dir):
             self.download()
         imgsets_file = osp.join(

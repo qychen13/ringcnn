@@ -20,7 +20,7 @@ def main():
     resume_optimizer = None
     if args.resume_model is not None:
         checkpoint = torch.load(args.resume_model)
-        if 'model' in checkpoint.keys:
+        if 'model' in checkpoint.keys():
             resume_model = checkpoint['model']
         else:
             resume_model = checkpoint
@@ -41,7 +41,7 @@ def main():
     optimizer = SGD(model.parameters(), args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
 
     if resume_optimizer is not None:
-        optimizer.load_state_dict(checkpoint[optimizer])
+        optimizer.load_state_dict(resume_optimizer)
 
     engine_set = dict(gpu_ids=args.gpu_ids,
                       network=model,
@@ -58,8 +58,10 @@ def main():
 
     engine_args = dict(checkpoint_iter_freq=args.checkpoint_iter_freq,
                        checkpoint_epoch_freq=args.checkpoint_epoch_freq,
-                       checkpoint_save_path=args.checkpoint_save_path, iter_log_freq=args.iter_log_freq,
-                       environment=args.environment, lr_points=lr_points)
+                       checkpoint_save_path=args.checkpoint_save_path,
+                       iter_log_freq=args.iter_log_freq,
+                       environment=args.environment,
+                       lr_points=lr_points)
 
     engine = construct_engine(engine_set, **engine_args)
 

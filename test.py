@@ -1,5 +1,5 @@
 from arguments.arguments_test import ArgumentsTest
-from models.construct_model import construct_model
+from models.construct_model import construct_test_model
 from utilities.tester import test
 from datasets.construct_dataset import construct_test_dataloaders
 import torch
@@ -12,7 +12,7 @@ def main():
     print(args)
 
     checkpoint = torch.load(args.resume_model)
-    model = construct_model(args, checkpoint['model'])
+    model = construct_test_model(args, checkpoint['model'])
 
     print('==> Resume Model {}'.format(args.resume_model))
 
@@ -21,7 +21,7 @@ def main():
 
     test_iterator = construct_test_dataloaders(args)
 
-    test(model, args.gpu_ids, iterator=test_iterator, logpath=args.logpath)
+    test(model, args.gpu_ids, iterator=test_iterator, num_classes=args.num_classes, logpath=args.logpath)
 
 
 if __name__ == '__main__':

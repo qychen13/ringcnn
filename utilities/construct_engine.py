@@ -49,10 +49,11 @@ def construct_engine(engine_args, checkpoint_iter_freq=5000, checkpoint_epoch_fr
 
     time_meter = meter.TimeMeter(1)
 
+    windowsize=100
     meters = dict(
-        data_loading_meter=Meterhelper(meter.MovingAverageValueMeter(windowsize=10), dict(data_t='Data Loading Time')),
-        gpu_time_meter=Meterhelper(meter.MovingAverageValueMeter(windowsize=10), dict(gpu_t='Gpu Computing Time')),
-        train_loss_meter=Meterhelper(meter.MovingAverageValueMeter(windowsize=10),
+        data_loading_meter=Meterhelper(meter.MovingAverageValueMeter(windowsize=windowsize), dict(data_t='Data Loading Time')),
+        gpu_time_meter=Meterhelper(meter.MovingAverageValueMeter(windowsize=windowsize), dict(gpu_t='Gpu Computing Time')),
+        train_loss_meter=Meterhelper(meter.MovingAverageValueMeter(windowsize=windowsize),
                                      dict(train_loss_iteration='Training Loss(Iteration)',
                                           train_loss_epoch='Training Loss(Epoch)')),
         test_loss_meter=Meterhelper(meter.AverageValueMeter(), dict(test_loss='Test Loss')))

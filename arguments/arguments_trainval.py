@@ -33,3 +33,6 @@ class ArgumentsTrainVal(ArgumentsBase):
 
         # criterion info
 
+        # dataset info
+        parser.add_argument('-ds', '--dataset', type=str, help='dataset name used for training')
+
