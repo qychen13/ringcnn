@@ -19,13 +19,9 @@ def main():
     print('--------------------------Model Info----------------------------')
     print(model)
 
-    topk = [1, 5]
-
     test_iterator = construct_test_dataloaders(args)
-    # _ ,test_iterator = construct_train_dataloaders(args)
 
-    test(model, args.gpu_ids, iterator=test_iterator, topk=topk, num_classes=args.num_classes,
-         enviroment=args.environment)
+    test(model, args.gpu_ids, iterator=test_iterator, logpath=args.logpath)
 
 
 if __name__ == '__main__':

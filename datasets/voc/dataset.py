@@ -45,6 +45,9 @@ class VOCClassSegBase(data.Dataset):
                                                            jttransforms.RandomHorizontallyFlip()])
     default_transforms = tvtransforms.Compose([tvtransforms.ToTensor(), tvtransforms.Normalize(mean=mean, std=std)])
     default_target_transforms = lambda lbl: np.array(lbl, dtype=np.int32).astype(np.int64)
+    url = None
+    filename = None
+    ignore_lbl = 255
 
     def __init__(self, root, joint_transforms=default_joint_transforms_train, transforms=default_transforms,
                  target_transforms=default_target_transforms, split='train'):
@@ -56,19 +59,28 @@ class VOCClassSegBase(data.Dataset):
         self._make_dataset(split)
 
     def _make_dataset(self, split):
-        # VOC2011 and others are subset of VOC2012
-        dataset_dir = osp.join(self.root, 'VOC/VOCdevkit/VOC2012')
-        imgsets_file = osp.join(
-            dataset_dir, 'ImageSets/Segmentation/%s.txt' % split)
-        for did in open(imgsets_file):
-            did = did.strip()
-            img_file = osp.join(dataset_dir, 'JPEGImages/%s.jpg' % did)
-            lbl_file = osp.join(
-                dataset_dir, 'SegmentationClass/%s.png' % did)
-            self.imgs.append({
-                'img': img_file,
-                'lbl': lbl_file,
-            })
+        raise NotImplementedError
+
+    def download(self):
+        import urllib3
+        import shutil
+        import tarfile
+
+        assert self.url is not None and self.filename is not None
+        filename = os.path.join(self.root, self.filename)
+
+        http = urllib3.PoolManager()
+        with http.request('GET', self.url, preload_content=False) as r, open(filename, 'wb') as out_file:
+            print('==> Downloading VOC2012 dataset from {}'.format(self.url))
+            shutil.copyfileobj(r, out_file)
+
+        # extract file
+        cwd = os.getcwd()
+        tar = tarfile.open(filename, 'r')
+        os.chdir(self.root)
+        tar.extractall()
+        tar.close()
+        os.chdir(cwd)
 
     def __len__(self):
         return len(self.imgs)
@@ -97,7 +109,6 @@ class VOCClassSegBase(data.Dataset):
         return PIL.Image.open(lbl_file)
 
 
-
 class VOC2011ClassSeg(VOCClassSegBase):
     def __init__(self, root, split='train'):
         super(VOC2011ClassSeg, self).__init__(root, split=split)
@@ -110,19 +121,38 @@ class VOC2011ClassSeg(VOCClassSegBase):
             did = did.strip()
             img_file = osp.join(dataset_dir, 'JPEGImages/%s.jpg' % did)
             lbl_file = osp.join(dataset_dir, 'SegmentationClass/%s.png' % did)
-            self.imgs['seg11valid'].append({'img': img_file, 'lbl': lbl_file})
+            self.imgs.append({'img': img_file, 'lbl': lbl_file})
 
 
 class VOC2012ClassSeg(VOCClassSegBase):
     url = 'http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar'  # NOQA
+    filename = 'VOCtrainval_11-May-2012.tar'
 
     def __init__(self, root, split='train'):
         super(VOC2012ClassSeg, self).__init__(root, split=split)
+
+    def _make_dataset(self, split):
+        # VOC2011 and others are subset of VOC2012
+        dataset_dir = osp.join(self.root, 'VOC/VOCdevkit/VOC2012')
+        if not osp.exists(dataset_dir):
+            self.download()
+        imgsets_file = osp.join(
+            dataset_dir, 'ImageSets/Segmentation/%s.txt' % split)
+        for did in open(imgsets_file):
+            did = did.strip()
+            img_file = osp.join(dataset_dir, 'JPEGImages/%s.jpg' % did)
+            lbl_file = osp.join(
+                dataset_dir, 'SegmentationClass/%s.png' % did)
+            self.imgs.append({
+                'img': img_file,
+                'lbl': lbl_file,
+            })
 
 
 class SBDClassSeg(VOCClassSegBase):
     # XXX: It must be renamed to benchmark.tar to be extracted.
     url = 'http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/semantic_contours/benchmark.tgz'  # NOQA
+    filename = 'benchmark.tgz'
 
     def __init__(self, root, split='train'):
         super(SBDClassSeg, self).__init__(root, split=split)
@@ -146,23 +176,3 @@ class SBDClassSeg(VOCClassSegBase):
         lbl = mat['GTcls']['Segmentation'][0][0].astype(np.uint8)
         lbl = PIL.Image.fromarray(lbl)
         return lbl
-
-    def download(self):
-        import urllib3
-        import shutil
-        import tarfile
-
-        filename = os.path.join(self.root, 'benchmark.tgz')
-
-        http = urllib3.PoolManager()
-        with http.request('GET', self.url, preload_content=False) as r, open(filename, 'wb') as out_file:
-            print('==> Downloading SBD dataset from {}'.format(self.url))
-            shutil.copyfileobj(r, out_file)
-
-        # extract file
-        cwd = os.getcwd()
-        tar = tarfile.open(filename, 'r')
-        os.chdir(self.root)
-        tar.extractall()
-        tar.close()
-        os.chdir(cwd)

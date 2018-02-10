@@ -15,3 +15,5 @@ class ArgumentsTest(ArgumentsBase):
         # model info
         parser.add_argument('-tm', '--resume-model', required=True, help='test model file', metavar='FILE')
 
+        # log info
+        parser.add_argument('-lp', '--logpath', required=True)

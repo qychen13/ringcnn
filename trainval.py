@@ -35,13 +35,13 @@ def main():
 
     # ============================= training setting =================================
 
-    criterion = utilities.loss.SoftMax2D(ignore_index=255)
+    train_iterator, validate_iterator = construct_train_dataloaders(args)
+
+    criterion = utilities.loss.SoftMax2D(ignore_index=train_iterator.dataset.ignore_lbl)
     optimizer = SGD(model.parameters(), args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
 
     if resume_optimizer is not None:
         optimizer.load_state_dict(checkpoint[optimizer])
-
-    train_iterator, validate_iterator = construct_train_dataloaders(args)
 
     engine_set = dict(gpu_ids=args.gpu_ids,
                       network=model,
@@ -49,9 +49,6 @@ def main():
                       train_iterator=train_iterator,
                       validate_iterator=validate_iterator,
                       optimizer=optimizer)
-    topk = [1, 5]
-    if args.num_classes == 100:
-        topk = [1]
 
     # learning rate points
     lr_points = []

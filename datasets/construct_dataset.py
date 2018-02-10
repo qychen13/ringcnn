@@ -27,7 +27,7 @@ def construct_train_dataloaders(args):
 
 
 def construct_test_dataloaders(args):
-    test_folder = vocdataset.SBDClassSeg(args.directory, split='val', transform=True)
+    test_folder = vocdataset.VOC2012ClassSeg(args.directory, split='val')
 
     pin_memory = False
     if torch.cuda.is_available():

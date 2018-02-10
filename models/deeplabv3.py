@@ -1,3 +1,5 @@
+"""Motivatied by torchvison.resnet
+"""
 import torchvision.models.resnet as resnet
 import torch.nn as nn
 

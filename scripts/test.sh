@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-python test.py -gs 0 -b 128 -nw 8 -en 'trainval-test' -model 'resnet56' -nc 100 -dir /media/jamesch/Dataset -tm 'checkpoints/init_model.pth.tar'
+python test.py -gs 0 1 -b 30 -nw 2 -en 'trainval-test' -model 'deeplabv3-resnet50-4blks' -nc 21 -dir /media/jamesch/Dataset -tm 'checkpoints/init_model.pth.tar'
