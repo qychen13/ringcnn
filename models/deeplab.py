@@ -60,7 +60,6 @@ class DeepLabAtrous(DeepLabBase):
             base_rate = 2 ** (i - 3)
             rates = [base_rate * grid for grid in multigrid]
             block_args_list = [[1024, rate] for rate in rates]
-            print(block_args_list)
             fulconv.append(self._make_fulconv_layers(block, block_args_list))
 
         self.fulconv = nn.Sequential(*fulconv)
