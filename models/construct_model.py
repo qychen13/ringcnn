@@ -1,4 +1,4 @@
-from . import deeplab
+from . import deeplab, ringcnn
 import torch.utils.model_zoo as model_zoo
 from utilities import initialization
 
@@ -6,12 +6,17 @@ model_urls = {'resnet50': 'https://download.pytorch.org/models/resnet50-19c8e357
 
 
 def parse_model(model_name, num_classes):
+    # name convention: deeplabv3-resnet50-4blks-ring
     model = None
-    if 'deeplabv3' in model_name:
-        if model_name == 'deeplabv3-resnet50-4blks':
-            model = deeplab.resnet50(4, num_classes)
-        elif model_name == 'deeplabv3-resnet50-6blks':
+    model_names = model_name.split('-')
+
+    if 'deeplabv3' == model_names[0]:
+        if 'resnet50' == model_names[1]:
+            num_blocks = int(model_names[2][0])
+            model = deeplab.resnet50(num_blocks, num_classes)
+        if len(model_names) == 4 and model_names[3] == 'ring':
             model = deeplab.resnet50(6, num_classes)
+            model = ringcnn.add_ring_blocks(model, 2)
 
     else:
         raise RuntimeError('Model name not defined!')
