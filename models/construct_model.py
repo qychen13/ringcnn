@@ -1,4 +1,4 @@
-from . import deeplab, ringcnn
+from . import deeplab, ringcnn, pspnet
 import torch.utils.model_zoo as model_zoo
 from utilities import initialization
 
@@ -12,12 +12,14 @@ def parse_model(model_name, num_classes):
 
     if 'deeplabv3' == model_names[0]:
         num_blocks = int(model_names[2][0])
-        if len(model_names) == 3 and 'resnet50' == model_names[1]:
+        if 'resnet50' == model_names[1]:
             model = deeplab.resnet50(num_blocks, num_classes)
-        elif model_names[3] == 'ring':
-            model = deeplab.deeplab(1, 'resnet50', num_blocks, num_classes)
-            model = ringcnn.add_ring_blocks(model, 2)
-
+        if 'ring' in model_name:
+            model = ringcnn.ringcnn_deeplab(model, rate=2)
+    elif 'pspnet' == model_names[0]:
+        model = pspnet.pspnet(model_names[1], num_classes)
+        if 'ring' in model_name:
+            model = ringcnn.ringcnn_dilatedfcn(model, rate=2)
     else:
         raise RuntimeError('Model name not defined!')
 
