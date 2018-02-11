@@ -11,11 +11,11 @@ def parse_model(model_name, num_classes):
     model_names = model_name.split('-')
 
     if 'deeplabv3' == model_names[0]:
-        if 'resnet50' == model_names[1]:
-            num_blocks = int(model_names[2][0])
+        num_blocks = int(model_names[2][0])
+        if len(model_names) == 3 and 'resnet50' == model_names[1]:
             model = deeplab.resnet50(num_blocks, num_classes)
-        if len(model_names) == 4 and model_names[3] == 'ring':
-            model = deeplab.resnet50(6, num_classes)
+        elif model_names[3] == 'ring':
+            model = deeplab.deeplab(1, 'resnet50', num_blocks, num_classes)
             model = ringcnn.add_ring_blocks(model, 2)
 
     else:
