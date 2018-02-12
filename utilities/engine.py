@@ -17,6 +17,7 @@ class Engine(engine.Engine):
             'maxepoch': None,
             'criterion': criterion,
             'optimizer': optimizer,
+            'scheduler': None,
             'epoch': None,
             't': None,
             'train': True,
@@ -55,6 +56,7 @@ class Engine(engine.Engine):
         state['t'] = t
         state['maxepoch'] = maxepoch
         state['train'] = True
+
 
         self.hook('on_start', state)
 

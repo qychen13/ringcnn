@@ -5,6 +5,7 @@ import time
 import copy
 
 import torch
+import torch.optim
 from torch.autograd.variable import Variable
 
 from torchnet.logger import VisdomPlotLogger
@@ -115,6 +116,9 @@ def construct_engine(engine_args, checkpoint_iter_freq=5000, checkpoint_epoch_fr
             if state['t'] == 0:
                 filename = os.path.join(checkpoint_save_path, 'init_model.pth.tar')
                 save_model(state, filename)
+            max_iter = len(state['train_iterator']) * state['maxepoch']
+            poly_lambda = lambda iteration: (1-iteration/max_iter)**0.9
+            state['scheduler'] = torch.optim.lr_scheduler.LambdaLR(state['optimizer'], poly_lambda)
         else:
             print('-------------Start Validation at {} For Epoch{}--------------'.format(time.strftime('%c'),
                                                                                          state['epoch']))
@@ -143,6 +147,7 @@ def construct_engine(engine_args, checkpoint_iter_freq=5000, checkpoint_epoch_fr
         # loss meters
         if state['train']:
             meters['train_loss_meter'].add(state['loss'].data[0])
+            state['scheduler'].step(state['t'])
         else:
             meters['test_loss_meter'].add(state['loss'].data[0])
 

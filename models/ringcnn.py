@@ -24,7 +24,7 @@ def add_ring_blocks(model, layer_names, rate):
 
 def ringcnn_deeplab(model, rate):
     l = len(model.fulconv._modules)
-    add_ring_blocks(model.fulconv, (l - 1,), rate)
+    add_ring_blocks(model.fulconv, (str(l - 1),), rate)
     return model
 
 
