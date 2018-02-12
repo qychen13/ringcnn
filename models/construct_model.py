@@ -22,6 +22,8 @@ def parse_model(model_name, num_classes):
             model = ringcnn.ringcnn_dilatedfcn(model, rate=2)
     elif 'dilatedFCN' == model_names[0]:
         model = pspnet.dilatedFCN(model_names[1], num_classes)
+        if 'ring' in model_name:
+            model = ringcnn.ringcnn_dilatedfcn(model, rate=2)
     else:
         raise RuntimeError('Model name not defined!')
 
