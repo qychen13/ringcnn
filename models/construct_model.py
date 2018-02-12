@@ -20,6 +20,8 @@ def parse_model(model_name, num_classes):
         model = pspnet.pspnet(model_names[1], num_classes)
         if 'ring' in model_name:
             model = ringcnn.ringcnn_dilatedfcn(model, rate=2)
+    elif 'dilatedFCN' == model_names[0]:
+        model = pspnet.dilatedFCN(model_names[1], num_classes)
     else:
         raise RuntimeError('Model name not defined!')
 
@@ -32,7 +34,8 @@ def construct_model(args, resume_model=None):
         for m in model_urls:
             if m in args.model_name:
                 initialization.load_partial_network(model, model_zoo.load_url(model_urls[m]))
-                initialization.init_network(model.fulconv)
+                if model.fulconv is not None:
+                    initialization.init_network(model.fulconv)
                 initialization.init_network(model.logits)
 
     elif resume_model is not None:

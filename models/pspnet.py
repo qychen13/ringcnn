@@ -23,11 +23,16 @@ class DilatedFCN(resnet.ResNet):
                 m.dilation, m.padding, m.stride = (4, 4), (4, 4), (1, 1)
             elif 'downsample.0' in n:
                 m.stride = (1, 1)
+        self.fulconv = None
         self.logits = nn.Sequential(nn.Dropout2d(0.5),
-                                    nn.Conv2d(512, num_classes, kernel_size=1))
+                                    nn.Conv2d(2048, num_classes, kernel_size=1))
 
     def forward(self, x):
-        x = self.layer0(x)
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
@@ -73,7 +78,11 @@ class PSPNet(DilatedFCN):
             self.aux_logits = nn.Conv2d(1024, num_classes, kernel_size=1)
 
     def forward(self, x):
-        x = self.layer0(x)
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
@@ -87,6 +96,12 @@ class PSPNet(DilatedFCN):
         return x
 
 
+layers = {'resnet50': [3, 4, 6, 3], 'resnet101': [3, 4, 23, 3]}
+
+
 def pspnet(model_name, num_classes):
-    layers = {'resnet50': [3, 4, 6, 3], 'resnet101': [3, 4, 23, 3]}
     return PSPNet(num_classes, layers[model_name])
+
+
+def dilatedFCN(model_name, num_classes):
+    return DilatedFCN(num_classes, layers[model_name])
