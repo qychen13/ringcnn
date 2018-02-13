@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-python trainval.py -b 1 -nw 2 -en 'deeplabv3-resnet50-4blks-nondilated-ring-trainval' -model 'deeplabv3-resnet50-4blks-nondilated-ring' -nc 21 -cpath checkpoints/deeplabv3-resnet50-4blks-nondilated -e 60 -lr 0.007 -iter 0 -epo 0 -ds 'SBD' -tl 1
+python trainval.py -b 16 -gs 0 1 -nw 2 -en 'deeplabv3-resnet50-4blks-nondilated-ring-trainval' -model 'deeplabv3-resnet50-4blks-nondilated-ring' -nc 21 -cpath checkpoints/deeplabv3-resnet50-4blks-nondilated-ring -e 60 -lr 0.007 -iter 0 -epo 0 -ds 'SBD' -tl 1
