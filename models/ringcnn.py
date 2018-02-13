@@ -13,7 +13,7 @@ class RingBlock(nn.Module):
             if self.residual:
                 x = 0.5 * x + 0.5 * self.base_module(x)
             else:
-                x = self.base_module(x)
+                x = self.base_module(x) * 0.5
         return x
 
 
