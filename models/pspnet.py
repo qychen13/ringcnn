@@ -66,16 +66,18 @@ class PyramidPoolingModule(nn.Module):
 
 class PSPNet(DilatedFCN):
     def __init__(self, num_classes, layers, psp_sizes=(1, 2, 3, 6), use_aux=True):
-        super(PSPNet, self).__init__(layers, num_classes)
+        super(PSPNet, self).__init__(num_classes, layers)
         fulconv = [PyramidPoolingModule(2048, psp_sizes),
                    nn.Conv2d(4096, 512, kernel_size=3, padding=1, bias=False),
                    nn.BatchNorm2d(512, momentum=.95),
                    nn.ReLU(inplace=True)]
         self.fulconv = nn.Sequential(*fulconv)
-        self.logits.__modules[0].p = 0.1
-
+        self.use_aux = use_aux
         if use_aux:
-            self.aux_logits = nn.Conv2d(1024, num_classes, kernel_size=1)
+            self.aux_logits = nn.Sequential(nn.Dropout2d(0.5),
+                                        nn.Conv2d(1024, num_classes, kernel_size=1))
+        self.logits = nn.Sequential(nn.Dropout2d(0.5),
+                                    nn.Conv2d(512, num_classes, kernel_size=1))
 
     def forward(self, x):
         x = self.conv1(x)
@@ -100,7 +102,7 @@ layers = {'resnet50': [3, 4, 6, 3], 'resnet101': [3, 4, 23, 3]}
 
 
 def pspnet(model_name, num_classes):
-    return PSPNet(num_classes, layers[model_name])
+    return PSPNet(num_classes, layers[model_name], use_aux=False)
 
 
 def dilatedFCN(model_name, num_classes):
