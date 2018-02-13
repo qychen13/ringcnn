@@ -17,17 +17,27 @@ class RingBlock(nn.Module):
         return x
 
 
-def add_ring_blocks(model, layer_names, rate):
-    for layer_name in layer_names:
+def add_ring_blocks(model, layer_names, rates):
+    for layer_name, rate in zip(layer_names, rates):
         model._modules[layer_name] = RingBlock(model._modules[layer_name], rate=rate)
 
 
-def ringcnn_deeplab(model, rate):
+def delete_dilated_conv(model):
+    for n, m in model.named_modules():
+        if 'conv2' in n:
+            if m.dilation != 1:
+                m.dilation = (1, 1)
+                m.padding = (1, 1)
+
+
+def ringcnn_deeplab(model, base_rate=2):
     l = len(model.fulconv._modules)
-    add_ring_blocks(model.fulconv, (str(l - 1),), rate)
+    rates = [base_rate * (2 ** i) for i in range(l)]
+    layer_names = [str(i) for i in range(l)]
+    add_ring_blocks(model.fulconv, layer_names, rates)
     return model
 
 
-def ringcnn_dilatedfcn(model, rate):
-    add_ring_blocks(model, ('layer4',), rate)
+def ringcnn_dilatedfcn(model, base_rate=2):
+    add_ring_blocks(model, ('layer3', 'layer4'), (base_rate, base_rate * 2))
     return model

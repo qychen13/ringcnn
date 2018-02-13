@@ -1,5 +1,5 @@
 from .arguments_base import ArgumentsBase
-
+import os
 
 class ArgumentsTrainVal(ArgumentsBase):
     def __init__(self):
@@ -8,14 +8,17 @@ class ArgumentsTrainVal(ArgumentsBase):
         parser = self.parser
 
         # the data set
-        parser.add_argument('-dir', '--directory', required=True, help='training and validation data directory',
+        parser.add_argument('-dir', '--directory', default=os.environ['DATASET_DIR'], help='training and validation data directory',
                             metavar='DIR')
         # pre-processing args
+
+        # log info
+        parser.add_argument('-ilog', '--iter-log-freq', type=int, default=100, help='log frequency under iterations')
 
         # model save info
         parser.add_argument('-cifrec', '--checkpoint-iter-freq', default=5000, type=int,
                             help='the frequency of saving model under iteration')
-        parser.add_argument('-cefrec', '--checkpoint-epoch-freq', default=1, type=int,
+        parser.add_argument('-cefrec', '--checkpoint-epoch-freq', default=5, type=int,
                             help='the frequency of saving model under epoch')
         parser.add_argument('-cpath', '--checkpoint_save-path', required=True, help='the directory to save model')
 

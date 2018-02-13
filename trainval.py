@@ -7,6 +7,8 @@ import utilities.loss
 from torch.optim.sgd import SGD
 import torch
 
+import os
+
 
 def main():
     # ============================= args setting =================================
@@ -55,6 +57,9 @@ def main():
     if args.num_classes == 100:
         lr_points = [150, 225]
     print('==> Set lr_points: {}'.format(lr_points))
+
+    if not os.path.exists(args.checkpoint_save_path):
+        os.system('mkdir {}'.format(args.checkpoint_save_path))
 
     engine_args = dict(checkpoint_iter_freq=args.checkpoint_iter_freq,
                        checkpoint_epoch_freq=args.checkpoint_epoch_freq,

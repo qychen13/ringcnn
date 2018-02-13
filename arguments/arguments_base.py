@@ -15,7 +15,6 @@ class ArgumentsBase(object):
         parser.add_argument('-nw', '--num-workers', default=4, type=int, help='workers for loading data')
 
         # logfile info
-        parser.add_argument('-ilog', '--iter-log-freq', type=int, default=10, help='log frequency under iterations')
         parser.add_argument('-en', '--environment', type=str, default='main', help='log environment for visdom')
 
         # model info

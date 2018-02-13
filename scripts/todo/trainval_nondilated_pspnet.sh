@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+python trainval.py -gs 0 1 -b 16 -nw 2 -en 'pspnet-resnet50-nondilated-trainval' -model 'pspnet-resnet50-nondilated' -nc 21 -cifrec 5000 -cefrec 5 -cpath checkpoints/pspnet-resnet50-nondilated -e 60 -lr 0.01 -iter 0 -epo 0 -ds 'SBD' -tl 1
