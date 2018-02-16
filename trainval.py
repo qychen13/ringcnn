@@ -66,7 +66,8 @@ def main():
                        checkpoint_save_path=args.checkpoint_save_path,
                        iter_log_freq=args.iter_log_freq,
                        environment=args.environment,
-                       lr_points=lr_points)
+                       lr_points=lr_points,
+                       num_classes=args.num_classes)
 
     engine = construct_engine(engine_set, **engine_args)
 

@@ -9,6 +9,8 @@ import torchnet.meter as meter
 from torch.autograd import Variable
 from tqdm import tqdm
 
+import utilities.segmentation_meter
+
 
 def test(model, gpu_ids, iterator, num_classes, logpath):
     print('=========================Start Testing at {}==========================='.format(time.strftime('%c')))
@@ -29,29 +31,20 @@ def test(model, gpu_ids, iterator, num_classes, logpath):
         for i in range(2):
             if gpu_ids is not None:
                 sample[i] = sample[i].cuda(gpu_ids[0], async=True)
+                sample[i] = Variable(sample[i], volatile=True)
 
         ipt, target = sample[0], sample[1]
-        ipt = Variable(ipt, volatile=True)
         opt = model(ipt)
 
         # compute confusion matrix
-        opt = torch.nn.functional.upsample(opt, target.shape[1:], mode='bilinear')
-        opt = opt.data
-        opt = opt.permute(0, 2, 3, 1).contiguous().view(-1, num_classes)
-        target = target.view(-1)
-        index = (target != ignore_lbl)
-        opt = opt[index.unsqueeze(1).expand_as(opt)].view(-1, num_classes)
-        target = target[index]
+        opt, target=utilities.segmentation_meter.preprocess_for_confusion(opt, target, ignore_lbl)
         confusion_meter.add(opt, target)
 
     confusion_matrix = confusion_meter.value()
     np.savetxt(os.path.join(logpath, 'confution_matrix.csv'), confusion_matrix, delimiter=',')
 
-    pacc = np.diag(confusion_matrix).sum() / confusion_matrix.sum()
-    acc = np.diag(confusion_matrix) / confusion_matrix.sum(1)
-    iu = np.diag(confusion_matrix) / (confusion_matrix.sum(1) + confusion_matrix.sum(0) - np.diag(confusion_matrix))
-    freq = confusion_matrix.sum(1) / confusion_matrix.sum()
+    meters = utilities.segmentation_meter.compute_segmentation_meters(confusion_matrix)
 
     print('========================Testing Down at {} ==========================='.format(time.strftime('%c')))
-    print('******************pixel acc.: {}, mean acc: {}, mIU: {}, f.w.IU:{} '
-          '*****************'.format(pacc, np.nanmean(acc), np.nanmean(iu), (freq[freq > 0] * iu[freq > 0]).sum()))
+    print('******************pixel acc.: {pacc}, mean acc: {macc}, mIU: {miu}, f.w.IU:{fwiu} '
+          '*****************'.format(**meters))

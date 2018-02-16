@@ -15,15 +15,15 @@ def parse_model(model_name, num_classes):
         if 'resnet50' == model_names[1]:
             model = deeplab.resnet50(num_blocks, num_classes)
         if 'ring' in model_name:
-            model = ringcnn.ringcnn_deeplab(model, base_rate=2)
+            model = ringcnn.ringcnn_v2_deeplab(model, base_rate=2)
     elif 'pspnet' == model_names[0]:
         model = pspnet.pspnet(model_names[1], num_classes)
         if 'ring' in model_name:
-            model = ringcnn.ringcnn_dilatedfcn(model, base_rate=2)
+            model = ringcnn.ringcnn_v1_dilatedfcn(model, base_rate=2)
     elif 'dilatedFCN' == model_names[0]:
         model = pspnet.dilatedFCN(model_names[1], num_classes)
         if 'ring' in model_name:
-            model = ringcnn.ringcnn_dilatedfcn(model, base_rate=2)
+            model = ringcnn.ringcnn_v1_dilatedfcn(model, base_rate=2)
     else:
         raise RuntimeError('Model name not defined!')
 

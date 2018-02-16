@@ -12,9 +12,10 @@ from torchnet.logger import VisdomPlotLogger
 import torchnet.meter as meter
 
 from .engine import Engine
+import utilities.segmentation_meter
 
 
-def construct_engine(engine_args, checkpoint_iter_freq=5000, checkpoint_epoch_freq=1,
+def construct_engine(engine_args, num_classes, checkpoint_iter_freq=5000, checkpoint_epoch_freq=1,
                      checkpoint_save_path='checkpoints',
                      iter_log_freq=30, environment='main', lr_points=[]):
     engine = Engine(**engine_args)
@@ -48,16 +49,38 @@ def construct_engine(engine_args, checkpoint_iter_freq=5000, checkpoint_epoch_fr
         def reset(self):
             return self.meter.reset()
 
+    class SegmentationHelper(Meterhelper):
+        def __init__(self):
+            super(SegmentationHelper, self).__init__(meter.ConfusionMeter(num_classes),
+                                                     dict(miu='Mean IoU', pacc='Pixel Accuracy', macc='Mean Accuracy',
+                                                          fwiu='f.w.Iou'))
+            self.ignore_lbl = engine_args['validate_iterator'].dataset.ignore_lbl
+
+        def log(self, x):
+            confusion_matrix = self.meter.value()
+            values = utilities.segmentation_meter.compute_segmentation_meters(confusion_matrix)
+
+            for key in values:
+                self.loggers[key].log(x, values[key])
+
+        def add(self, opt, target):
+            opt, target = utilities.segmentation_meter.preprocess_for_confusion(opt, target, self.ignore_lbl)
+            self.meter.add(opt, target)
+
+
     time_meter = meter.TimeMeter(1)
 
-    windowsize=100
+    windowsize = 100
     meters = dict(
-        data_loading_meter=Meterhelper(meter.MovingAverageValueMeter(windowsize=windowsize), dict(data_t='Data Loading Time')),
-        gpu_time_meter=Meterhelper(meter.MovingAverageValueMeter(windowsize=windowsize), dict(gpu_t='Gpu Computing Time')),
+        data_loading_meter=Meterhelper(meter.MovingAverageValueMeter(windowsize=windowsize),
+                                       dict(data_t='Data Loading Time')),
+        gpu_time_meter=Meterhelper(meter.MovingAverageValueMeter(windowsize=windowsize),
+                                   dict(gpu_t='Gpu Computing Time')),
         train_loss_meter=Meterhelper(meter.MovingAverageValueMeter(windowsize=windowsize),
                                      dict(train_loss_iteration='Training Loss(Iteration)',
                                           train_loss_epoch='Training Loss(Epoch)')),
-        test_loss_meter=Meterhelper(meter.AverageValueMeter(), dict(test_loss='Test Loss')))
+        test_loss_meter=Meterhelper(meter.AverageValueMeter(), dict(test_loss='Test Loss')),
+        segmentation_meter=SegmentationHelper())
 
     # ***************************Auxiliaries******************************
 
@@ -117,7 +140,7 @@ def construct_engine(engine_args, checkpoint_iter_freq=5000, checkpoint_epoch_fr
                 filename = os.path.join(checkpoint_save_path, 'init_model.pth.tar')
                 save_model(state, filename)
             max_iter = len(state['train_iterator']) * state['maxepoch']
-            poly_lambda = lambda iteration: (1-iteration/max_iter)**0.9
+            poly_lambda = lambda iteration: (1 - iteration / max_iter) ** 0.9
             state['scheduler'] = torch.optim.lr_scheduler.LambdaLR(state['optimizer'], poly_lambda)
         else:
             print('-------------Start Validation at {} For Epoch{}--------------'.format(time.strftime('%c'),
@@ -150,6 +173,7 @@ def construct_engine(engine_args, checkpoint_iter_freq=5000, checkpoint_epoch_fr
             state['scheduler'].step(state['t'])
         else:
             meters['test_loss_meter'].add(state['loss'].data[0])
+            meters['segmentation_meter'].add(state['output'], state['sample'][1])
 
     def on_end_update(state):
         # logging info and saving model
@@ -190,6 +214,7 @@ def construct_engine(engine_args, checkpoint_iter_freq=5000, checkpoint_epoch_fr
     def on_end_test(state):
         # calculation
         meters['test_loss_meter'].log('test_loss', x=state['epoch'])
+        meters['segmentation_meter'].log(x=state['epoch'])
         print('----------------Test epoch {} done: loss {}------------------'.format(state['epoch'], meters[
             'test_loss_meter'].meter.value()))
         reset_meters()
