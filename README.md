@@ -1,5 +1,5 @@
 # ringcnn
-# Description
+## Description
 This is an implementation about a ring convolution neural network architecture for semantic segmentation.
 In my previous research, ring cnn based on FCN acheive better performance in weakly supervised learning for semantic segmentation.
 
@@ -21,13 +21,23 @@ It may seem similar to the residual block while it does not have new weights for
 We found it is very useful for weakly supervised semantic segmentation because deepening the network by adding new weights would lead to the loss of local information.
 
 
+* Weakly Supervised Semantic Segmentation:
+
 <img src='images/ring-cnn-structure.png'/>
 
+* Residual Block v.s. Ring Block:
 
-# Requirements
+<img src='images/skip-structure-ai.png'/>
+
+* Ring CNN:
+
+<img src='images/ring-cnn-ai.png' />
+
+
+## Requirements
 * pytorch 
 
-# ToDo
+## ToDo
 
 * Integrating previous weakly supervised semantic segmentation menthod
 * Through the preliminary experiments, we found the ring block is not useful for the fully supervised sementic segmentation. We are still working on it.
