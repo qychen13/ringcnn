@@ -20,6 +20,10 @@ It enables the expanding of receptive fields while leaving the change to have id
 It may seem similar to the residual block while it does not have new weights for deepening the network.
 We found it is very useful for weakly supervised semantic segmentation because deepening the network by adding new weights would lead to the loss of local information.
 
+
+<img src='images/ring-cnn-structure.png'/>
+
+
 # Requirements
 * pytorch 
 
