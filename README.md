@@ -40,7 +40,7 @@ We found it is very useful for weakly supervised semantic segmentation because d
 
 * intermediate output from Ring-CNN30: recur 1(left), recur 10(left-middle), recur 20(right-middle), recur 30(right)
 
-<img src='images/skip.png' />
+<img src='images/ring30-cut.png' />
 
 
 ## Requirements
