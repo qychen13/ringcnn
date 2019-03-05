@@ -15,8 +15,13 @@ ring-cnn10 | 0.3205
 ring-cnn20 | 0.3216
 ring-cnn30 | 0.3284
 
+* FCN32(left), Ring-CNN10(left-middle), Ring-CNN20(right-middle), Ring-CNN30(right):
+
+<img src='images/ring-cnn.png'/>
+
 The motivation of ring block is to train the robustness about the variation of receptive fields. 
 It enables the expanding of receptive fields while leaving the change to have identity mapping for preserving previous well segmentated objects.
+
 It may seem similar to the residual block while it does not have new weights for deepening the network.
 We found it is very useful for weakly supervised semantic segmentation because deepening the network by adding new weights would lead to the loss of local information.
 
@@ -32,6 +37,10 @@ We found it is very useful for weakly supervised semantic segmentation because d
 * Ring CNN:
 
 <img src='images/ring-cnn-ai.png' />
+
+* intermediate output from Ring-CNN30: recur 1(left), recur 10(left-middle), recur 20(right-middle), recur 30(right)
+
+<img src='images/skip.png' />
 
 
 ## Requirements
